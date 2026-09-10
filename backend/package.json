@@ -1,0 +1,19 @@
+{
+  "name": "campus-task-manager-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Campus Task Manager hackathon project",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test-endpoints.js"
+  },
+  "keywords": ["express", "hackathon", "campus-task-manager"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
