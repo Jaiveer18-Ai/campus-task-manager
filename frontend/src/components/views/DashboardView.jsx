@@ -13,6 +13,8 @@ export default function DashboardView({
   onSearchChange,
   courseFilter,
   onCourseFilterChange,
+  categoryFilter,
+  onCategoryFilterChange,
   priorityFilter,
   onPriorityFilterChange,
   sortBy,
@@ -20,6 +22,7 @@ export default function DashboardView({
   onResetFilters,
   taskCounts,
   hasActiveFilters,
+  isLoading,
   onToggleComplete,
   onEditTask,
   onDeleteTask,
@@ -49,6 +52,8 @@ export default function DashboardView({
           onSearchChange={onSearchChange}
           courseFilter={courseFilter}
           onCourseFilterChange={onCourseFilterChange}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={onCategoryFilterChange}
           priorityFilter={priorityFilter}
           onPriorityFilterChange={onPriorityFilterChange}
           sortBy={sortBy}
@@ -62,6 +67,7 @@ export default function DashboardView({
         <TaskList
           tasks={filteredAndSortedTasks}
           totalTaskCount={tasks.length}
+          isLoading={isLoading}
           onToggleComplete={onToggleComplete}
           onEditTask={onEditTask}
           onDeleteTask={onDeleteTask}

@@ -5,12 +5,26 @@ import { ClipboardList, Plus, Sparkles } from 'lucide-react';
 export default function TaskList({ 
   tasks, 
   totalTaskCount,
+  isLoading = false,
   onToggleComplete, 
   onEditTask,
   onDeleteTask, 
   onOpenNewTaskModal,
   onResetFilters 
 }) {
+  // Asynchronous Loading State
+  if (isLoading) {
+    return (
+      <div className="empty-state" style={{ minHeight: 220 }} role="status" aria-live="polite">
+        <div className="loading-spinner" aria-label="Loading tasks" />
+        <h3 className="empty-title" style={{ marginTop: '1.25rem' }}>Loading Tasks...</h3>
+        <p className="empty-subtitle">
+          Retrieving your academic workload and upcoming deadlines.
+        </p>
+      </div>
+    );
+  }
+
   // Empty State 1: No tasks at all in system
   if (totalTaskCount === 0) {
     return (

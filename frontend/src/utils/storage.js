@@ -1,4 +1,5 @@
 import { INITIAL_TASKS } from '../data/mockTasks';
+import { sanitizeTask } from '../services/taskService';
 
 const TASKS_STORAGE_KEY = 'campus_task_manager_tasks_v2';
 const SETTINGS_STORAGE_KEY = 'campus_task_manager_settings_v1';
@@ -8,21 +9,23 @@ export function loadTasks() {
     const saved = localStorage.getItem(TASKS_STORAGE_KEY);
     // Only seed mock tasks if the user has NEVER saved anything (saved === null)
     if (saved === null) {
-      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(INITIAL_TASKS));
-      return INITIAL_TASKS;
+      const sanitized = INITIAL_TASKS.map(sanitizeTask);
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(sanitized));
+      return sanitized;
     }
     const parsed = JSON.parse(saved);
     // Return parsed array even if empty (allows user to legitimately have 0 tasks)
-    return Array.isArray(parsed) ? parsed : INITIAL_TASKS;
+    return Array.isArray(parsed) ? parsed.map(sanitizeTask) : INITIAL_TASKS.map(sanitizeTask);
   } catch (error) {
     console.error('Failed to load tasks from localStorage:', error);
-    return INITIAL_TASKS;
+    return INITIAL_TASKS.map(sanitizeTask);
   }
 }
 
 export function saveTasks(tasks) {
   try {
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+    const sanitized = Array.isArray(tasks) ? tasks.map(sanitizeTask) : [];
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(sanitized));
   } catch (error) {
     console.error('Failed to save tasks to localStorage:', error);
   }
@@ -30,10 +33,11 @@ export function saveTasks(tasks) {
 
 export function resetToDemoTasks() {
   try {
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(INITIAL_TASKS));
-    return INITIAL_TASKS;
+    const sanitized = INITIAL_TASKS.map(sanitizeTask);
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(sanitized));
+    return sanitized;
   } catch {
-    return INITIAL_TASKS;
+    return INITIAL_TASKS.map(sanitizeTask);
   }
 }
 

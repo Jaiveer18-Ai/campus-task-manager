@@ -12,6 +12,8 @@ export default function AllTasksView({
   onSearchChange,
   courseFilter,
   onCourseFilterChange,
+  categoryFilter,
+  onCategoryFilterChange,
   priorityFilter,
   onPriorityFilterChange,
   sortBy,
@@ -19,6 +21,7 @@ export default function AllTasksView({
   onResetFilters,
   taskCounts,
   hasActiveFilters,
+  isLoading,
   onToggleComplete,
   onEditTask,
   onDeleteTask,
@@ -61,6 +64,8 @@ export default function AllTasksView({
         onSearchChange={onSearchChange}
         courseFilter={courseFilter}
         onCourseFilterChange={onCourseFilterChange}
+        categoryFilter={categoryFilter}
+        onCategoryFilterChange={onCategoryFilterChange}
         priorityFilter={priorityFilter}
         onPriorityFilterChange={onPriorityFilterChange}
         sortBy={sortBy}
@@ -74,6 +79,7 @@ export default function AllTasksView({
       <TaskList
         tasks={filteredAndSortedTasks}
         totalTaskCount={tasks.length}
+        isLoading={isLoading}
         onToggleComplete={onToggleComplete}
         onEditTask={onEditTask}
         onDeleteTask={onDeleteTask}

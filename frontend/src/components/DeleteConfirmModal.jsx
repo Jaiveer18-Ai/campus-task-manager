@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
 
-export default function DeleteConfirmModal({ isOpen, task, onClose, onConfirm }) {
+export default function DeleteConfirmModal({ isOpen, task, onClose, onConfirm, isDeleting = false }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !isDeleting) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isDeleting]);
 
   if (!isOpen || !task) return null;
 
@@ -70,6 +70,7 @@ export default function DeleteConfirmModal({ isOpen, task, onClose, onConfirm })
             type="button"
             className="btn btn-secondary"
             onClick={onClose}
+            disabled={isDeleting}
           >
             Cancel
           </button>
@@ -78,9 +79,10 @@ export default function DeleteConfirmModal({ isOpen, task, onClose, onConfirm })
             className="btn btn-danger"
             onClick={() => onConfirm(task.id)}
             id="btn-confirm-delete"
+            disabled={isDeleting}
           >
             <Trash2 size={15} />
-            <span>Delete Task</span>
+            <span>{isDeleting ? 'Deleting...' : 'Delete Task'}</span>
           </button>
         </div>
       </div>

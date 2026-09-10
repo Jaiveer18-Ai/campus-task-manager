@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Pencil, AlertCircle } from 'lucide-react';
 import { COURSE_OPTIONS, CATEGORY_OPTIONS } from '../data/mockTasks';
 
-export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = null }) {
+export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = null, isSubmitting = false }) {
   const getDefaultDueDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -44,13 +44,13 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
   // Keyboard shortcut: Escape to close
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !isSubmitting) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSubmitting]);
 
   if (!isOpen) return null;
 
@@ -62,22 +62,17 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
       return;
     }
 
-    const taskData = {
-      ...(editingTask || {}),
-      id: editingTask ? editingTask.id : `task-${Date.now()}`,
+    // Exact payload matching POST /api/tasks & PATCH /api/tasks/:id
+    const payload = {
       title: title.trim(),
       course,
       category,
       priority,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-      description: description.trim(),
-      completed: editingTask ? editingTask.completed : false,
-      createdAt: editingTask ? editingTask.createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      description: description.trim()
     };
 
-    onSaveTask(taskData);
-    onClose();
+    onSaveTask(payload);
   };
 
   return (
@@ -252,6 +247,7 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
               type="button"
               className="btn btn-secondary"
               onClick={onClose}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
@@ -259,8 +255,11 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
               type="submit"
               className="btn btn-primary"
               id="btn-submit-task"
+              disabled={isSubmitting}
             >
-              {editingTask ? (
+              {isSubmitting ? (
+                <span>Saving...</span>
+              ) : editingTask ? (
                 <>
                   <Pencil size={15} />
                   <span>Save Changes</span>

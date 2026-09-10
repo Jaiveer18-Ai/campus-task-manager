@@ -4,11 +4,12 @@ import {
   X, 
   BookOpen, 
   Flag, 
+  Tag,
   ArrowUpDown, 
   Plus, 
   RotateCcw 
 } from 'lucide-react';
-import { COURSE_OPTIONS } from '../data/mockTasks';
+import { COURSE_OPTIONS, CATEGORY_OPTIONS } from '../data/mockTasks';
 
 export default function FilterBar({
   statusFilter,
@@ -17,6 +18,8 @@ export default function FilterBar({
   onSearchChange,
   courseFilter,
   onCourseFilterChange,
+  categoryFilter = 'all',
+  onCategoryFilterChange,
   priorityFilter,
   onPriorityFilterChange,
   sortBy,
@@ -87,6 +90,23 @@ export default function FilterBar({
               <option value="all">All Courses</option>
               {COURSE_OPTIONS.map(course => (
                 <option key={course} value={course}>{course}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category Select */}
+          <div className="select-wrapper">
+            <Tag size={14} className="select-icon-prefix" aria-hidden="true" />
+            <select
+              className="select-control"
+              value={categoryFilter}
+              onChange={(e) => onCategoryFilterChange?.(e.target.value)}
+              aria-label="Filter by category"
+              id="select-category-filter"
+            >
+              <option value="all">All Categories</option>
+              {CATEGORY_OPTIONS.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
           </div>
