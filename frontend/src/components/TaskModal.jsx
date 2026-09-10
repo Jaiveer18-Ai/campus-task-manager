@@ -1,35 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, AlertCircle, Calendar, BookOpen, Layers } from 'lucide-react';
+import { X, Plus, Pencil, AlertCircle } from 'lucide-react';
 import { COURSE_OPTIONS, CATEGORY_OPTIONS } from '../data/mockTasks';
 
-export default function TaskModal({ isOpen, onClose, onAddTask }) {
-  const [title, setTitle] = useState('');
-  const [course, setCourse] = useState('CS101');
-  const [category, setCategory] = useState('Assignment');
-  const [priority, setPriority] = useState('medium');
-  const [dueDate, setDueDate] = useState('');
-  const [description, setDescription] = useState('');
+export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = null }) {
+  const getDefaultDueDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(18, 0, 0, 0);
+    return tomorrow.toISOString().slice(0, 16);
+  };
+
+  const [title, setTitle] = useState(() => (editingTask ? editingTask.title || '' : ''));
+  const [course, setCourse] = useState(() => (editingTask ? editingTask.course || 'CS101' : 'CS101'));
+  const [category, setCategory] = useState(() => (editingTask ? editingTask.category || 'Assignment' : 'Assignment'));
+  const [priority, setPriority] = useState(() => (editingTask ? editingTask.priority || 'medium' : 'medium'));
+  const [dueDate, setDueDate] = useState(() => 
+    editingTask ? (editingTask.dueDate ? editingTask.dueDate.slice(0, 16) : '') : getDefaultDueDate()
+  );
+  const [description, setDescription] = useState(() => (editingTask ? editingTask.description || '' : ''));
   const [error, setError] = useState('');
 
   const titleInputRef = useRef(null);
 
-  // Set default due date to tomorrow at 23:59
+  // Auto-focus input when opened
   useEffect(() => {
     if (isOpen) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(23, 59, 0, 0);
-      setDueDate(tomorrow.toISOString().slice(0, 16));
-      setError('');
-      
-      // Auto-focus title input when modal opens
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 50);
     }
   }, [isOpen]);
 
-  // Keyboard shortcut: ESC to close
+  // Keyboard shortcut: Escape to close
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -50,44 +52,51 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
       return;
     }
 
-    const newTask = {
-      id: `task-${Date.now()}`,
+    const taskData = {
+      ...(editingTask || {}),
+      id: editingTask ? editingTask.id : `task-${Date.now()}`,
       title: title.trim(),
       course,
       category,
       priority,
-      dueDate,
+      dueDate: dueDate || null,
       description: description.trim(),
-      completed: false,
-      createdAt: new Date().toISOString()
+      completed: editingTask ? editingTask.completed : false,
+      createdAt: editingTask ? editingTask.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    onAddTask(newTask);
-    // Reset form
-    setTitle('');
-    setDescription('');
-    setError('');
+    onSaveTask(taskData);
     onClose();
   };
 
   return (
     <div 
-      className="modal-backdrop" 
+      className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
       role="presentation"
     >
       <div 
-        className="modal-dialog" 
-        role="dialog" 
-        aria-modal="true" 
-        aria-labelledby="modal-add-title"
+        className="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-task-heading"
       >
         <div className="modal-header">
-          <h2 id="modal-add-title" className="modal-title">
-            <Plus size={20} className="text-primary" />
-            <span>Add New Student Task</span>
+          <h2 id="modal-task-heading" className="modal-title">
+            {editingTask ? (
+              <>
+                <Pencil size={18} color="var(--primary)" />
+                <span>Edit Task</span>
+              </>
+            ) : (
+              <>
+                <Plus size={20} color="var(--primary)" strokeWidth={2.5} />
+                <span>Add New Task</span>
+              </>
+            )}
           </h2>
           <button
             type="button"
@@ -101,7 +110,7 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="modal-body">
-            {/* Title Input */}
+            {/* Title */}
             <div className="form-group">
               <label htmlFor="task-title-input" className="form-label">
                 <span>Task Title <span className="required" aria-hidden="true">*</span></span>
@@ -127,7 +136,7 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
               )}
             </div>
 
-            {/* Course & Category Grid */}
+            {/* Course & Category */}
             <div className="form-grid-2">
               <div className="form-group">
                 <label htmlFor="task-course-select" className="form-label">
@@ -162,10 +171,10 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
               </div>
             </div>
 
-            {/* Priority Selection (Radio Chips) */}
+            {/* Priority Level */}
             <div className="form-group">
               <label className="form-label">Priority Level</label>
-              <div className="priority-chip-group" role="radiogroup" aria-label="Priority Level">
+              <div className="priority-chip-group" role="radiogroup" aria-label="Priority level selection">
                 <button
                   type="button"
                   role="radio"
@@ -196,7 +205,7 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
               </div>
             </div>
 
-            {/* Due Date Input */}
+            {/* Due Date */}
             <div className="form-group">
               <label htmlFor="task-due-date-input" className="form-label">
                 <span>Due Date & Time</span>
@@ -210,7 +219,7 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
               />
             </div>
 
-            {/* Description / Notes */}
+            {/* Description */}
             <div className="form-group">
               <label htmlFor="task-desc-input" className="form-label">
                 <span>Notes & Instructions (Optional)</span>
@@ -219,7 +228,7 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
                 id="task-desc-input"
                 className="form-textarea"
                 rows="3"
-                placeholder="Include room location, submission links, or group members..."
+                placeholder="Include submission portal, room location, or group member notes..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -239,8 +248,17 @@ export default function TaskModal({ isOpen, onClose, onAddTask }) {
               className="btn btn-primary"
               id="btn-submit-task"
             >
-              <Plus size={16} strokeWidth={2.5} />
-              <span>Add Task</span>
+              {editingTask ? (
+                <>
+                  <Pencil size={15} />
+                  <span>Save Changes</span>
+                </>
+              ) : (
+                <>
+                  <Plus size={16} strokeWidth={2.5} />
+                  <span>Add Task</span>
+                </>
+              )}
             </button>
           </div>
         </form>

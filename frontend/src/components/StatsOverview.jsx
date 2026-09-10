@@ -1,12 +1,12 @@
 import React from 'react';
-import { CheckCircle2, Clock, ListTodo, AlertTriangle, TrendingUp } from 'lucide-react';
+import { ListTodo, Clock, Check, AlertTriangle, BarChart2 } from 'lucide-react';
 import { getDueStatus } from '../utils/dateHelpers';
 
 export default function StatsOverview({ tasks }) {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.completed).length;
-  const pendingTasks = totalTasks - completedTasks;
-  
+  const inProgressTasks = totalTasks - completedTasks;
+
   const urgentTasks = tasks.filter(t => {
     if (t.completed) return false;
     const status = getDueStatus(t.dueDate, t.completed);
@@ -17,68 +17,87 @@ export default function StatsOverview({ tasks }) {
 
   return (
     <section aria-label="Academic Progress Overview">
-      {/* Metric Cards Grid */}
+      {/* 4 Spacious Metric Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-info">
-            <span className="stat-label">Total Assigned</span>
-            <span className="stat-value">{totalTasks}</span>
-          </div>
-          <div className="stat-icon-wrapper primary" aria-hidden="true">
+        <div className="stat-card" id="stat-total-assigned">
+          <div className="stat-icon-wrapper purple" aria-hidden="true">
             <ListTodo size={22} />
           </div>
+          <div className="stat-info">
+            <span className="stat-label">Total Assigned</span>
+            <div className="stat-value-group">
+              <span className="stat-number">{totalTasks}</span>
+              <span className="stat-unit">{totalTasks === 1 ? 'task' : 'tasks'}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-info">
-            <span className="stat-label">In Progress</span>
-            <span className="stat-value">{pendingTasks}</span>
-          </div>
-          <div className="stat-icon-wrapper warning" aria-hidden="true">
+        <div className="stat-card" id="stat-in-progress">
+          <div className="stat-icon-wrapper amber" aria-hidden="true">
             <Clock size={22} />
           </div>
+          <div className="stat-info">
+            <span className="stat-label">In Progress</span>
+            <div className="stat-value-group">
+              <span className="stat-number">{inProgressTasks}</span>
+              <span className="stat-unit">{inProgressTasks === 1 ? 'task' : 'tasks'}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card" id="stat-completed">
+          <div className="stat-icon-wrapper emerald" aria-hidden="true">
+            <Check size={22} strokeWidth={2.5} />
+          </div>
           <div className="stat-info">
             <span className="stat-label">Completed</span>
-            <span className="stat-value">{completedTasks}</span>
-          </div>
-          <div className="stat-icon-wrapper success" aria-hidden="true">
-            <CheckCircle2 size={22} />
+            <div className="stat-value-group">
+              <span className="stat-number">{completedTasks}</span>
+              <span className="stat-unit">{completedTasks === 1 ? 'task' : 'tasks'}</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card" id="stat-urgent">
+          <div className="stat-icon-wrapper coral" aria-hidden="true">
+            <AlertTriangle size={22} />
+          </div>
           <div className="stat-info">
             <span className="stat-label">Urgent / Due Today</span>
-            <span className="stat-value">{urgentTasks}</span>
-          </div>
-          <div className="stat-icon-wrapper info" aria-hidden="true">
-            <AlertTriangle size={22} />
+            <div className="stat-value-group">
+              <span className="stat-number">{urgentTasks}</span>
+              <span className="stat-unit">{urgentTasks === 1 ? 'task' : 'tasks'}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="progress-card">
+      {/* Progress Section Card */}
+      <div className="progress-section-card">
         <div className="progress-header">
-          <span className="progress-title">
-            <TrendingUp size={16} />
-            <span>Semester Task Completion</span>
-          </span>
-          <span className="progress-pct">{completionRate}% Completed</span>
+          <div className="progress-title-area">
+            <BarChart2 size={19} className="progress-title-icon" />
+            <span className="progress-title-text">Semester Task Completion</span>
+          </div>
+          <div className="progress-meta-area">
+            <span className="progress-percentage">{completionRate}% Completed</span>
+            <span className="progress-subtext">
+              <Clock size={14} />
+              <span>{completedTasks} of {totalTasks} tasks done</span>
+            </span>
+          </div>
         </div>
+
         <div 
-          className="progress-track" 
-          role="progressbar" 
-          aria-valuenow={completionRate} 
-          aria-valuemin="0" 
+          className="progress-track"
+          role="progressbar"
+          aria-valuenow={completionRate}
+          aria-valuemin="0"
           aria-valuemax="100"
-          aria-label="Task completion percentage"
+          aria-label="Semester task completion"
         >
           <div 
-            className="progress-fill" 
+            className="progress-fill"
             style={{ width: `${completionRate}%` }}
           />
         </div>

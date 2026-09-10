@@ -1,25 +1,26 @@
 import React from 'react';
 import TaskItem from './TaskItem';
-import { ClipboardList, CheckCheck, Plus, Sparkles } from 'lucide-react';
+import { ClipboardList, Plus, Sparkles } from 'lucide-react';
 
 export default function TaskList({ 
   tasks, 
   totalTaskCount,
   onToggleComplete, 
+  onEditTask,
   onDeleteTask, 
   onOpenNewTaskModal,
   onResetFilters 
 }) {
-  // Empty State 1: No tasks at all in the system
+  // Empty State 1: No tasks at all in system
   if (totalTaskCount === 0) {
     return (
       <div className="empty-state">
         <div className="empty-icon-circle">
           <Sparkles size={32} />
         </div>
-        <h3 className="empty-title">Welcome to Campus Task Manager!</h3>
+        <h3 className="empty-title">Your Task List is Clear!</h3>
         <p className="empty-subtitle">
-          Your academic workspace is currently clear. Add your upcoming assignments, exams, or campus projects to stay on top of your semester.
+          Add your upcoming assignments, exams, or campus projects to stay organized and achieve your academic goals this semester.
         </p>
         <button
           type="button"
@@ -34,16 +35,16 @@ export default function TaskList({
     );
   }
 
-  // Empty State 2: No tasks match the current filter/search
+  // Empty State 2: Filters or search yielded no results
   if (tasks.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon-circle" style={{ backgroundColor: 'var(--bg-surface-subtle)', color: 'var(--text-secondary)' }}>
-          <ClipboardList size={32} />
+        <div className="empty-icon-circle" style={{ backgroundColor: '#f1f5f9', color: 'var(--text-secondary)' }}>
+          <ClipboardList size={30} />
         </div>
         <h3 className="empty-title">No Matching Tasks Found</h3>
         <p className="empty-subtitle">
-          No tasks matched your active filter or search query. Try switching filter tabs or clearing your search criteria.
+          No tasks matched your active filter or search keyword. Try clearing your search or switching to another filter tab.
         </p>
         <button
           type="button"
@@ -57,14 +58,15 @@ export default function TaskList({
     );
   }
 
-  // Active Task List
+  // Render list of task cards
   return (
-    <section className="task-list-section" aria-label="Tasks list">
+    <section className="task-list-container" aria-label="Tasks list">
       {tasks.map(task => (
         <TaskItem
           key={task.id}
           task={task}
           onToggleComplete={onToggleComplete}
+          onEditTask={onEditTask}
           onDeleteTask={onDeleteTask}
         />
       ))}

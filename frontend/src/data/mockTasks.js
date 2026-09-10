@@ -13,65 +13,65 @@ function getOffsetDate(daysOffset, hours = 17, minutes = 0) {
 export const INITIAL_TASKS = [
   {
     id: 'task-1',
+    title: 'Pick up validated student semester transit pass',
+    course: 'Campus Life',
+    category: 'Personal',
+    priority: 'low',
+    dueDate: getOffsetDate(-1, 10, 30), // Yesterday
+    description: 'Visit the Campus Student Services desk in Union Building Room 204.',
+    completed: true,
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
+  },
+  {
+    id: 'task-2',
     title: 'Submit Data Structures Lab 4 (Binary Search Trees)',
     course: 'CS101',
     category: 'Assignment',
     priority: 'high',
-    dueDate: getOffsetDate(0, 23, 59), // Due today
+    dueDate: getOffsetDate(0, 18, 29), // Due today
     description: 'Implement recursive insertion, deletion, and in-order traversal with unit test verification.',
     completed: false,
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
   },
   {
-    id: 'task-2',
-    title: 'Multivariable Calculus Midterm 1 Practice Exam',
+    id: 'task-3',
+    title: 'Prepare for Midterm Exam',
     course: 'MATH201',
     category: 'Exam Prep',
     priority: 'high',
-    dueDate: getOffsetDate(2, 14, 0), // Due in 2 days
-    description: 'Solve chapter 14 review problems on partial derivatives and gradient vectors.',
+    dueDate: getOffsetDate(2, 9, 0), // In 2 days
+    description: 'Review chapters 1-5, practice past papers, and solve sample problems.',
     completed: false,
     createdAt: new Date(Date.now() - 86400000).toISOString()
   },
   {
-    id: 'task-3',
-    title: 'Optics Experiment Lab Report & Graph Analysis',
-    course: 'PHYS150',
-    category: 'Project',
+    id: 'task-4',
+    title: "Read and Analyze 'The Great Gatsby'",
+    course: 'ENG102',
+    category: 'Reading',
     priority: 'medium',
-    dueDate: getOffsetDate(4, 18, 0), // Due in 4 days
-    description: 'Plot Snell’s Law refraction index findings and write abstract with lab partner.',
+    dueDate: getOffsetDate(4, 23, 59), // In 4 days
+    description: 'Complete analysis notes and be ready for class discussion.',
     completed: false,
     createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
   },
   {
-    id: 'task-4',
-    title: 'Modernist American Poetry Reading (Ch. 4-6)',
-    course: 'ENG102',
-    category: 'Reading',
-    priority: 'low',
-    dueDate: getOffsetDate(6, 10, 0), // Due in 6 days
-    description: 'Annotate key metaphors in Wallace Stevens and Robert Frost selections.',
+    id: 'task-5',
+    title: 'Optics Experiment Lab Report & Graph Analysis',
+    course: 'PHYS150',
+    category: 'Project',
+    priority: 'medium',
+    dueDate: getOffsetDate(6, 18, 0), // In 6 days
+    description: 'Plot Snell’s Law refraction index findings and write abstract with lab partner.',
     completed: false,
     createdAt: new Date(Date.now() - 86400000 * 4).toISOString()
-  },
-  {
-    id: 'task-5',
-    title: 'Pick up validated student semester transit pass',
-    course: 'Campus Life',
-    category: 'Personal',
-    priority: 'low',
-    dueDate: getOffsetDate(-1, 16, 0), // Yesterday
-    description: 'Visit the Campus Student Services desk in Union Building Room 204.',
-    completed: true,
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
   },
   {
     id: 'task-6',
     title: 'ACM Coding Club Hackathon Team Registration',
     course: 'Club / Extracurricular',
     category: 'Project',
-    priority: 'medium',
+    priority: 'low',
     dueDate: getOffsetDate(5, 20, 0),
     description: 'Confirm team roster of 4 members and submit project pitch outline.',
     completed: true,

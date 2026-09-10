@@ -1,9 +1,9 @@
 /**
- * Helper utilities for student task due dates and deadlines
+ * Helper utilities for student task due dates, deadlines, and status chips
  */
 
 export function formatDueDate(dateString) {
-  if (!dateString) return 'No due date';
+  if (!dateString) return '';
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
@@ -19,42 +19,64 @@ export function formatDueDate(dateString) {
 }
 
 export function getDueStatus(dateString, isCompleted) {
-  if (!dateString || isCompleted) return { label: '', urgency: 'none' };
-  
+  if (isCompleted) {
+    return {
+      label: '',
+      urgency: 'completed',
+      chipLabel: 'Completed',
+      chipVariant: 'completed'
+    };
+  }
+
+  if (!dateString) {
+    return { label: '', urgency: 'none', chipLabel: null, chipVariant: 'none' };
+  }
+
   const due = new Date(dateString);
   const now = new Date();
-  
-  // Set both to start of day for accurate day-difference calculation
+
+  // Day comparison
   const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
+
   const diffDays = Math.round((dueDay - today) / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays < 0) {
     const overdueDays = Math.abs(diffDays);
+    const text = overdueDays === 1 ? 'Overdue by 1 day' : `Overdue by ${overdueDays} days`;
     return {
-      label: overdueDays === 1 ? 'Overdue by 1 day' : `Overdue by ${overdueDays} days`,
-      urgency: 'urgent'
+      label: text,
+      urgency: 'urgent',
+      chipLabel: 'Overdue',
+      chipVariant: 'urgent'
     };
   } else if (diffDays === 0) {
     return {
       label: 'Due today',
-      urgency: 'urgent'
+      urgency: 'urgent',
+      chipLabel: 'Due Today',
+      chipVariant: 'urgent'
     };
   } else if (diffDays === 1) {
     return {
       label: 'Due tomorrow',
-      urgency: 'soon'
+      urgency: 'soon',
+      chipLabel: 'In 1 day',
+      chipVariant: 'soon'
     };
   } else if (diffDays <= 3) {
     return {
-      label: `Due in ${diffDays} days`,
-      urgency: 'soon'
+      label: `In ${diffDays} days`,
+      urgency: 'soon',
+      chipLabel: `In ${diffDays} days`,
+      chipVariant: 'soon'
     };
   } else {
     return {
-      label: `Due in ${diffDays} days`,
-      urgency: 'normal'
+      label: `In ${diffDays} days`,
+      urgency: 'upcoming',
+      chipLabel: `In ${diffDays} days`,
+      chipVariant: 'upcoming'
     };
   }
 }

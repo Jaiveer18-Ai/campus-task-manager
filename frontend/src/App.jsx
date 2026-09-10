@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import HeaderBanner from './components/HeaderBanner';
 import StatsOverview from './components/StatsOverview';
 import FilterBar from './components/FilterBar';
 import TaskList from './components/TaskList';
 import TaskModal from './components/TaskModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import Toast from './components/Toast';
-import { loadTasks, saveTasks, loadTheme, saveTheme } from './utils/storage';
+import { loadTasks, saveTasks } from './utils/storage';
 
 export default function App() {
-  // Theme State
-  const [theme, setTheme] = useState(loadTheme);
+  // Navigation State
+  const [activeNav, setActiveNav] = useState('Dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Tasks State
   const [tasks, setTasks] = useState(loadTasks);
@@ -23,27 +25,28 @@ export default function App() {
   const [sortBy, setSortBy] = useState('dueDateAsc');
 
   // Modal & Notification State
-  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [toast, setToast] = useState(null);
-
-  // Sync theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    saveTheme(theme);
-  }, [theme]);
 
   // Sync tasks to localStorage
   useEffect(() => {
     saveTasks(tasks);
   }, [tasks]);
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
-
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
+  };
+
+  const handleNavSelect = (navId) => {
+    setActiveNav(navId);
+    if (navId === 'All Tasks') {
+      setStatusFilter('all');
+      document.getElementById('main-tasks-section')?.scrollIntoView({ behavior: 'smooth' });
+    } else if (navId !== 'Dashboard') {
+      showToast(`${navId} module will be available in the next release!`, 'info');
+    }
   };
 
   // Task Actions
@@ -53,10 +56,10 @@ export default function App() {
         if (task.id === id) {
           const nextCompleted = !task.completed;
           showToast(
-            nextCompleted ? 'Task marked as completed! 🎉' : 'Task marked as active.',
+            nextCompleted ? 'Task completed! Keep up the momentum! 🎉' : 'Task marked as active.',
             nextCompleted ? 'success' : 'info'
           );
-          return { ...task, completed: nextCompleted };
+          return { ...task, completed: nextCompleted, updatedAt: new Date().toISOString() };
         }
         return task;
       });
@@ -64,9 +67,28 @@ export default function App() {
     });
   };
 
-  const handleAddTask = (newTask) => {
-    setTasks(prevTasks => [newTask, ...prevTasks]);
-    showToast(`Added: "${newTask.title}"`, 'success');
+  const handleOpenAddTask = () => {
+    setEditingTask(null);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleOpenEditTask = (task) => {
+    setEditingTask(task);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleSaveTask = (taskData) => {
+    setTasks(prevTasks => {
+      const exists = prevTasks.some(t => t.id === taskData.id);
+      if (exists) {
+        showToast(`Updated: "${taskData.title}"`, 'success');
+        return prevTasks.map(t => (t.id === taskData.id ? taskData : t));
+      } else {
+        showToast(`Added: "${taskData.title}"`, 'success');
+        return [taskData, ...prevTasks];
+      }
+    });
+    setEditingTask(null);
   };
 
   const handleDeleteRequest = (id) => {
@@ -91,7 +113,7 @@ export default function App() {
     setSortBy('dueDateAsc');
   };
 
-  // Calculate task counts for status tabs
+  // Calculate task counts
   const taskCounts = useMemo(() => {
     const completed = tasks.filter(t => t.completed).length;
     return {
@@ -101,7 +123,6 @@ export default function App() {
     };
   }, [tasks]);
 
-  // Check if non-default filters are active
   const hasActiveFilters = Boolean(
     statusFilter !== 'all' ||
     searchQuery.trim() !== '' ||
@@ -167,55 +188,69 @@ export default function App() {
   }, [tasks, statusFilter, searchQuery, courseFilter, priorityFilter, sortBy]);
 
   return (
-    <div className="app-container">
-      {/* Top Navigation */}
-      <Navbar
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onOpenNewTaskModal={() => setIsNewTaskModalOpen(true)}
+    <div className="app-layout">
+      {/* Left Navigation Sidebar */}
+      <Sidebar
+        activeNav={activeNav}
+        onNavSelect={handleNavSelect}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
-      <main id="main-content">
-        {/* Progress & Metrics Overview */}
+      <div className="main-content">
+        {/* Scenic Academic Header Banner */}
+        <HeaderBanner
+          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+        />
+
+        {/* 4 Metric Cards & Completion Progress */}
         <StatsOverview tasks={tasks} />
 
-        {/* Filters, Search & Controls */}
-        <FilterBar
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          courseFilter={courseFilter}
-          onCourseFilterChange={setCourseFilter}
-          priorityFilter={priorityFilter}
-          onPriorityFilterChange={setPriorityFilter}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          onResetFilters={handleResetFilters}
-          taskCounts={taskCounts}
-          hasActiveFilters={hasActiveFilters}
-        />
+        {/* Tasks Section with Filter Toolbar */}
+        <div id="main-tasks-section">
+          <FilterBar
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            courseFilter={courseFilter}
+            onCourseFilterChange={setCourseFilter}
+            priorityFilter={priorityFilter}
+            onPriorityFilterChange={setPriorityFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onResetFilters={handleResetFilters}
+            taskCounts={taskCounts}
+            hasActiveFilters={hasActiveFilters}
+            onOpenNewTaskModal={handleOpenAddTask}
+          />
 
-        {/* Task List / Empty State */}
-        <TaskList
-          tasks={filteredAndSortedTasks}
-          totalTaskCount={tasks.length}
-          onToggleComplete={handleToggleComplete}
-          onDeleteTask={handleDeleteRequest}
-          onOpenNewTaskModal={() => setIsNewTaskModalOpen(true)}
-          onResetFilters={handleResetFilters}
-        />
-      </main>
+          <TaskList
+            tasks={filteredAndSortedTasks}
+            totalTaskCount={tasks.length}
+            onToggleComplete={handleToggleComplete}
+            onEditTask={handleOpenEditTask}
+            onDeleteTask={handleDeleteRequest}
+            onOpenNewTaskModal={handleOpenAddTask}
+            onResetFilters={handleResetFilters}
+          />
+        </div>
+      </div>
 
-      {/* Add New Task Modal Dialog */}
+      {/* Task Creation & Editing Modal Dialog */}
       <TaskModal
-        isOpen={isNewTaskModalOpen}
-        onClose={() => setIsNewTaskModalOpen(false)}
-        onAddTask={handleAddTask}
+        key={editingTask ? editingTask.id : (isTaskModalOpen ? 'open-new' : 'closed')}
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setEditingTask(null);
+        }}
+        onSaveTask={handleSaveTask}
+        editingTask={editingTask}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal Dialog */}
       <DeleteConfirmModal
         isOpen={Boolean(taskToDelete)}
         task={taskToDelete}
@@ -223,7 +258,7 @@ export default function App() {
         onConfirm={handleConfirmDelete}
       />
 
-      {/* Animated Action Toast */}
+      {/* Action Feedback Toast */}
       <Toast
         toast={toast}
         onClose={() => setToast(null)}
