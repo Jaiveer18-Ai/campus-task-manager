@@ -14,9 +14,19 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
   const [course, setCourse] = useState(() => (editingTask ? editingTask.course || 'CS101' : 'CS101'));
   const [category, setCategory] = useState(() => (editingTask ? editingTask.category || 'Assignment' : 'Assignment'));
   const [priority, setPriority] = useState(() => (editingTask ? editingTask.priority || 'medium' : 'medium'));
-  const [dueDate, setDueDate] = useState(() => 
-    editingTask ? (editingTask.dueDate ? editingTask.dueDate.slice(0, 16) : '') : getDefaultDueDate()
-  );
+  const [dueDate, setDueDate] = useState(() => {
+    if (editingTask && editingTask.dueDate) {
+      try {
+        const d = new Date(editingTask.dueDate);
+        // Pad to local format YYYY-MM-DDTHH:MM
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } catch {
+        return '';
+      }
+    }
+    return getDefaultDueDate();
+  });
   const [description, setDescription] = useState(() => (editingTask ? editingTask.description || '' : ''));
   const [error, setError] = useState('');
 
@@ -59,7 +69,7 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
       course,
       category,
       priority,
-      dueDate: dueDate || null,
+      dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       description: description.trim(),
       completed: editingTask ? editingTask.completed : false,
       createdAt: editingTask ? editingTask.createdAt : new Date().toISOString(),

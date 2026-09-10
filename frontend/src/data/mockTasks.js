@@ -1,13 +1,13 @@
 /**
  * Initial mock tasks for campus task manager.
- * Uses dynamically calculated dates so the task list feels fresh and alive.
+ * Fully compliant with docs/API_CONTRACT.md schema.
  */
 
 function getOffsetDate(daysOffset, hours = 17, minutes = 0) {
   const d = new Date();
   d.setDate(d.getDate() + daysOffset);
   d.setHours(hours, minutes, 0, 0);
-  return d.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM for datetime-local
+  return d.toISOString(); // Full ISO 8601 timestamp compliant with API contract
 }
 
 export const INITIAL_TASKS = [
@@ -20,7 +20,8 @@ export const INITIAL_TASKS = [
     dueDate: getOffsetDate(-1, 10, 30), // Yesterday
     description: 'Visit the Campus Student Services desk in Union Building Room 204.',
     completed: true,
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString()
   },
   {
     id: 'task-2',
@@ -31,7 +32,8 @@ export const INITIAL_TASKS = [
     dueDate: getOffsetDate(0, 18, 29), // Due today
     description: 'Implement recursive insertion, deletion, and in-order traversal with unit test verification.',
     completed: false,
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString()
   },
   {
     id: 'task-3',
@@ -42,7 +44,8 @@ export const INITIAL_TASKS = [
     dueDate: getOffsetDate(2, 9, 0), // In 2 days
     description: 'Review chapters 1-5, practice past papers, and solve sample problems.',
     completed: false,
-    createdAt: new Date(Date.now() - 86400000).toISOString()
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString()
   },
   {
     id: 'task-4',
@@ -53,7 +56,8 @@ export const INITIAL_TASKS = [
     dueDate: getOffsetDate(4, 23, 59), // In 4 days
     description: 'Complete analysis notes and be ready for class discussion.',
     completed: false,
-    createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 3).toISOString()
   },
   {
     id: 'task-5',
@@ -64,18 +68,20 @@ export const INITIAL_TASKS = [
     dueDate: getOffsetDate(6, 18, 0), // In 6 days
     description: 'Plot Snell’s Law refraction index findings and write abstract with lab partner.',
     completed: false,
-    createdAt: new Date(Date.now() - 86400000 * 4).toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 4).toISOString()
   },
   {
     id: 'task-6',
     title: 'ACM Coding Club Hackathon Team Registration',
-    course: 'Club / Extracurricular',
+    course: 'Club',
     category: 'Project',
     priority: 'low',
     dueDate: getOffsetDate(5, 20, 0),
     description: 'Confirm team roster of 4 members and submit project pitch outline.',
     completed: true,
-    createdAt: new Date(Date.now() - 86400000 * 6).toISOString()
+    createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString()
   }
 ];
 
@@ -85,7 +91,8 @@ export const COURSE_OPTIONS = [
   'PHYS150',
   'ENG102',
   'Campus Life',
-  'Club / Extracurricular'
+  'Club',
+  'General'
 ];
 
 export const CATEGORY_OPTIONS = [
