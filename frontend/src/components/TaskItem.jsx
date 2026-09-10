@@ -20,6 +20,7 @@ export default function TaskItem({ task, onToggleComplete, onEditTask, onDeleteT
     if (lower.includes('phys')) return 'course-badge-phys';
     if (lower.includes('eng')) return 'course-badge-eng';
     if (lower.includes('club')) return 'course-badge-club';
+    if (lower.includes('general')) return 'course-badge-general';
     return 'course-badge-cs'; // default CS101
   };
 
@@ -40,6 +41,8 @@ export default function TaskItem({ task, onToggleComplete, onEditTask, onDeleteT
       {/* Checkbox */}
       <button
         type="button"
+        role="checkbox"
+        aria-checked={task.completed}
         className={`task-checkbox-btn ${task.completed ? 'checked' : ''}`}
         onClick={() => onToggleComplete(task.id)}
         aria-label={task.completed ? 'Mark task as incomplete' : 'Mark task as complete'}

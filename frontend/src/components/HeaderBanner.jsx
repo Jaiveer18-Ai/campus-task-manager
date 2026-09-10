@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, ChevronDown, User, Menu } from 'lucide-react';
 import campusBannerImg from '../assets/campus_banner.jpg';
 
-export default function HeaderBanner({ onOpenMobileSidebar }) {
+export default function HeaderBanner({ onOpenMobileSidebar, currentSemester = 'Fall 2026', onSemesterClick }) {
   return (
     <>
       {/* Mobile Top App Bar */}
@@ -52,10 +52,11 @@ export default function HeaderBanner({ onOpenMobileSidebar }) {
             type="button"
             className="semester-select-btn"
             id="btn-semester-select"
-            title="Academic Term"
+            title="Configure Academic Term in Settings"
+            onClick={onSemesterClick}
           >
             <Calendar size={15} color="var(--primary)" />
-            <span>Fall 2026</span>
+            <span>{currentSemester}</span>
             <ChevronDown size={14} color="var(--text-muted)" />
           </button>
 

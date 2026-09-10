@@ -132,6 +132,7 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
                 className="form-input"
                 placeholder="e.g. Submit CS101 Lab 3, Prepare for Midterm"
                 value={title}
+                maxLength={200}
                 onChange={(e) => {
                   setTitle(e.target.value);
                   if (error) setError('');
@@ -240,6 +241,7 @@ export default function TaskModal({ isOpen, onClose, onSaveTask, editingTask = n
                 rows="3"
                 placeholder="Include submission portal, room location, or group member notes..."
                 value={description}
+                maxLength={1000}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>

@@ -1,12 +1,12 @@
 /**
- * Helper utilities for student task due dates, deadlines, and status chips
+ * Helper utilities for student task due dates, deadlines, calendar, and status chips
  */
 
 export function formatDueDate(dateString) {
   if (!dateString) return '';
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString;
+    if (isNaN(date.getTime())) return '';
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -14,7 +14,7 @@ export function formatDueDate(dateString) {
       minute: '2-digit'
     });
   } catch {
-    return dateString;
+    return '';
   }
 }
 
@@ -33,6 +33,11 @@ export function getDueStatus(dateString, isCompleted) {
   }
 
   const due = new Date(dateString);
+  // Defensive guard against malformed or invalid date strings [DEFECT-M4]
+  if (isNaN(due.getTime())) {
+    return { label: '', urgency: 'none', chipLabel: null, chipVariant: 'none' };
+  }
+
   const now = new Date();
 
   // Day comparison
@@ -79,4 +84,35 @@ export function getDueStatus(dateString, isCompleted) {
       chipVariant: 'upcoming'
     };
   }
+}
+
+/* ==========================================================================
+   Calendar View Helper Functions
+   ========================================================================== */
+
+export const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+export const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+export function getFirstDayOfWeek(year, month) {
+  return new Date(year, month, 1).getDay();
+}
+
+export function isSameDay(date1, date2) {
+  if (!date1 || !date2) return false;
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return false;
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
 }

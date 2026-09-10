@@ -1,18 +1,47 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
-import HeaderBanner from './components/HeaderBanner';
-import StatsOverview from './components/StatsOverview';
-import FilterBar from './components/FilterBar';
-import TaskList from './components/TaskList';
+import DashboardView from './components/views/DashboardView';
+import AllTasksView from './components/views/AllTasksView';
+import CalendarView from './components/views/CalendarView';
+import AnalyticsView from './components/views/AnalyticsView';
+import SettingsView from './components/views/SettingsView';
 import TaskModal from './components/TaskModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
+import ClearAllConfirmModal from './components/ClearAllConfirmModal';
 import Toast from './components/Toast';
-import { loadTasks, saveTasks } from './utils/storage';
+import { 
+  loadTasks, 
+  saveTasks, 
+  loadSettings, 
+  saveSettings, 
+  resetToDemoTasks, 
+  clearAllStoredTasks 
+} from './utils/storage';
+
+const NAV_HASH_MAP = {
+  '': 'Dashboard',
+  '#dashboard': 'Dashboard',
+  '#tasks': 'All Tasks',
+  '#calendar': 'Calendar',
+  '#analytics': 'Analytics',
+  '#settings': 'Settings'
+};
+
+const NAV_TO_HASH = {
+  'Dashboard': '#dashboard',
+  'All Tasks': '#tasks',
+  'Calendar': '#calendar',
+  'Analytics': '#analytics',
+  'Settings': '#settings'
+};
 
 export default function App() {
   // Navigation State
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Settings State
+  const [settings, setSettings] = useState(loadSettings);
 
   // Tasks State
   const [tasks, setTasks] = useState(loadTasks);
@@ -28,6 +57,7 @@ export default function App() {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   // Sync tasks to localStorage
@@ -35,18 +65,42 @@ export default function App() {
     saveTasks(tasks);
   }, [tasks]);
 
+  // Sync settings to localStorage and handle reduced motion
+  useEffect(() => {
+    saveSettings(settings);
+    if (settings?.reducedMotion) {
+      document.body.classList.add('reduced-motion');
+    } else {
+      document.body.classList.remove('reduced-motion');
+    }
+  }, [settings]);
+
+  // Hash-based routing synchronization (supports back/forward buttons and bookmarks)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      const matchedNav = NAV_HASH_MAP[hash];
+      if (matchedNav) {
+        setActiveNav(matchedNav);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
   };
 
   const handleNavSelect = (navId) => {
     setActiveNav(navId);
-    if (navId === 'All Tasks') {
-      setStatusFilter('all');
-      document.getElementById('main-tasks-section')?.scrollIntoView({ behavior: 'smooth' });
-    } else if (navId !== 'Dashboard') {
-      showToast(`${navId} module will be available in the next release!`, 'info');
+    const targetHash = NAV_TO_HASH[navId] || '#dashboard';
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
     }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Task Actions
@@ -111,6 +165,36 @@ export default function App() {
     setCourseFilter('all');
     setPriorityFilter('all');
     setSortBy('dueDateAsc');
+  };
+
+  // Data management actions
+  const handleRestoreDemoTasks = () => {
+    const restored = resetToDemoTasks();
+    setTasks(restored);
+    showToast('Demo tasks restored successfully! 🚀', 'success');
+  };
+
+  const handleConfirmClearAll = () => {
+    clearAllStoredTasks();
+    setTasks([]);
+    setIsClearAllModalOpen(false);
+    showToast('All tasks have been cleared from your workspace.', 'danger');
+  };
+
+  const handleExportTasks = () => {
+    try {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(tasks, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `campus_tasks_${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Tasks exported to JSON file! 📥', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to export tasks', 'danger');
+    }
   };
 
   // Calculate task counts
@@ -198,18 +282,11 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="main-content">
-        {/* Scenic Academic Header Banner */}
-        <HeaderBanner
-          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
-        />
-
-        {/* 4 Metric Cards & Completion Progress */}
-        <StatsOverview tasks={tasks} />
-
-        {/* Tasks Section with Filter Toolbar */}
-        <div id="main-tasks-section">
-          <FilterBar
+      <main className="main-content" id="main-content">
+        {activeNav === 'Dashboard' && (
+          <DashboardView
+            tasks={tasks}
+            filteredAndSortedTasks={filteredAndSortedTasks}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             searchQuery={searchQuery}
@@ -223,20 +300,71 @@ export default function App() {
             onResetFilters={handleResetFilters}
             taskCounts={taskCounts}
             hasActiveFilters={hasActiveFilters}
-            onOpenNewTaskModal={handleOpenAddTask}
-          />
-
-          <TaskList
-            tasks={filteredAndSortedTasks}
-            totalTaskCount={tasks.length}
             onToggleComplete={handleToggleComplete}
             onEditTask={handleOpenEditTask}
             onDeleteTask={handleDeleteRequest}
             onOpenNewTaskModal={handleOpenAddTask}
-            onResetFilters={handleResetFilters}
+            onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+            currentSemester={settings?.semester || 'Fall 2026'}
+            onSemesterClick={() => handleNavSelect('Settings')}
           />
-        </div>
-      </div>
+        )}
+
+        {activeNav === 'All Tasks' && (
+          <AllTasksView
+            tasks={tasks}
+            filteredAndSortedTasks={filteredAndSortedTasks}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            courseFilter={courseFilter}
+            onCourseFilterChange={setCourseFilter}
+            priorityFilter={priorityFilter}
+            onPriorityFilterChange={setPriorityFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onResetFilters={handleResetFilters}
+            taskCounts={taskCounts}
+            hasActiveFilters={hasActiveFilters}
+            onToggleComplete={handleToggleComplete}
+            onEditTask={handleOpenEditTask}
+            onDeleteTask={handleDeleteRequest}
+            onOpenNewTaskModal={handleOpenAddTask}
+            onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        )}
+
+        {activeNav === 'Calendar' && (
+          <CalendarView
+            tasks={tasks}
+            onToggleComplete={handleToggleComplete}
+            onEditTask={handleOpenEditTask}
+            onDeleteTask={handleDeleteRequest}
+            onOpenNewTaskModal={handleOpenAddTask}
+            onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        )}
+
+        {activeNav === 'Analytics' && (
+          <AnalyticsView
+            tasks={tasks}
+            onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        )}
+
+        {activeNav === 'Settings' && (
+          <SettingsView
+            settings={settings}
+            onUpdateSettings={setSettings}
+            taskCount={tasks.length}
+            onRestoreDemoTasks={handleRestoreDemoTasks}
+            onOpenClearAllModal={() => setIsClearAllModalOpen(true)}
+            onExportTasks={handleExportTasks}
+            onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          />
+        )}
+      </main>
 
       {/* Task Creation & Editing Modal Dialog */}
       <TaskModal
@@ -250,12 +378,19 @@ export default function App() {
         editingTask={editingTask}
       />
 
-      {/* Delete Confirmation Modal Dialog */}
+      {/* Single Task Delete Confirmation Modal Dialog */}
       <DeleteConfirmModal
         isOpen={Boolean(taskToDelete)}
         task={taskToDelete}
         onClose={() => setTaskToDelete(null)}
         onConfirm={handleConfirmDelete}
+      />
+
+      {/* Clear All Tasks Confirmation Modal Dialog */}
+      <ClearAllConfirmModal
+        isOpen={isClearAllModalOpen}
+        onClose={() => setIsClearAllModalOpen(false)}
+        onConfirm={handleConfirmClearAll}
       />
 
       {/* Action Feedback Toast */}
