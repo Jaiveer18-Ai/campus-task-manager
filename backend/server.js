@@ -114,7 +114,7 @@ app.get('/', (req, res) => {
       listTasks: 'GET /api/tasks',
       getTaskById: 'GET /api/tasks/:id',
       createTask: 'POST /api/tasks',
-      updateTask: 'PATCH /api/tasks/:id',
+      updateTask: 'PATCH (or PUT) /api/tasks/:id',
       markTaskCompleted: 'PATCH /api/tasks/:id/complete',
       deleteTask: 'DELETE /api/tasks/:id'
     }
@@ -173,19 +173,26 @@ app.post('/api/tasks', (req, res) => {
   const { title, course, category, priority, dueDate, description } = req.body;
   const validationErrors = [];
 
-  // Validation
+  // Title validation
   if (!title || typeof title !== 'string' || !title.trim()) {
     validationErrors.push("Field 'title' is required and cannot be blank.");
   } else if (title.trim().length > 200) {
     validationErrors.push("Field 'title' must not exceed 200 characters.");
   }
 
+  // Category validation
   if (category && !VALID_CATEGORIES.includes(category)) {
     validationErrors.push(`Field 'category' must be one of: ${VALID_CATEGORIES.join(', ')}.`);
   }
 
+  // Priority validation
   if (priority && !VALID_PRIORITIES.includes(priority)) {
     validationErrors.push(`Field 'priority' must be one of: ${VALID_PRIORITIES.join(', ')}.`);
+  }
+
+  // Description validation
+  if (description && typeof description === 'string' && description.length > 1000) {
+    validationErrors.push("Field 'description' must not exceed 1000 characters.");
   }
 
   if (validationErrors.length > 0) {
@@ -202,22 +209,22 @@ app.post('/api/tasks', (req, res) => {
   const newTask = {
     id: `task-${Date.now()}`,
     title: title.trim(),
-    course: course && course.trim() ? course.trim() : 'General',
+    course: course && typeof course === 'string' && course.trim() ? course.trim() : 'General',
     category: category || 'Assignment',
     priority: priority || 'medium',
     dueDate: dueDate || null,
-    description: description ? description.trim() : '',
+    description: description && typeof description === 'string' ? description.trim() : '',
     completed: false,
     createdAt: now,
     updatedAt: now
   };
 
-  tasks.unshift(newTask); // Add to top so new tasks appear first
+  tasks.unshift(newTask); // Add to top so newly created tasks appear first
   res.status(201).json(newTask);
 });
 
-// 5.4. Update a Task (Partial or Full) (Contract.md Section 5.4)
-app.patch('/api/tasks/:id', (req, res) => {
+// 5.4. Update a Task (Partial or Full) handler (Contract.md Section 5.4)
+const handleUpdateTask = (req, res) => {
   const { id } = req.params;
   const task = tasks.find((t) => t.id === id);
 
@@ -244,23 +251,31 @@ app.patch('/api/tasks/:id', (req, res) => {
     validationErrors.push(`Field 'priority' must be one of: ${VALID_PRIORITIES.join(', ')}.`);
   }
 
+  if (description !== undefined && typeof description === 'string' && description.length > 1000) {
+    validationErrors.push("Field 'description' must not exceed 1000 characters.");
+  }
+
   if (validationErrors.length > 0) {
     return sendError(res, 400, 'Bad Request', 'Invalid field value provided.', validationErrors);
   }
 
   // Apply updates
   if (title !== undefined) task.title = title.trim();
-  if (course !== undefined) task.course = course.trim();
+  if (course !== undefined && typeof course === 'string') task.course = course.trim();
   if (category !== undefined) task.category = category;
   if (priority !== undefined) task.priority = priority;
   if (dueDate !== undefined) task.dueDate = dueDate;
-  if (description !== undefined) task.description = description.trim();
+  if (description !== undefined && typeof description === 'string') task.description = description.trim();
   if (typeof completed === 'boolean') task.completed = completed;
 
   task.updatedAt = new Date().toISOString();
 
   res.status(200).json(task);
-});
+};
+
+// Supports both PATCH and PUT as specified in Contract.md Section 5.4
+app.patch('/api/tasks/:id', handleUpdateTask);
+app.put('/api/tasks/:id', handleUpdateTask);
 
 // Convenience endpoint: Mark Task Complete (Contract.md Section 5.4 / Frontend shortcut)
 app.patch('/api/tasks/:id/complete', (req, res) => {
@@ -295,6 +310,14 @@ app.delete('/api/tasks/:id', (req, res) => {
     message: `Task '${id}' was successfully deleted.`,
     id
   });
+});
+
+// Global Error Handler for malformed JSON or unexpected errors (Contract.md Section 4 & 6)
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return sendError(res, 400, 'Bad Request', 'Malformed JSON in request body.');
+  }
+  return sendError(res, 500, 'Internal Server Error', 'An unexpected server error occurred.');
 });
 
 // Export app for modularity and testing
