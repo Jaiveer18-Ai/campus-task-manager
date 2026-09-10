@@ -126,8 +126,9 @@ app.get('/api/tasks', (req, res) => {
   let result = [...tasks];
   const { status, course, priority, search } = req.query;
 
-  // Status filter: 'all' | 'active' | 'completed'
-  if (status === 'active') {
+  // Status filter: 'all' | 'active' | 'pending' | 'completed'
+  // Both 'active' (backend standard) and 'pending' (frontend convention) return uncompleted tasks
+  if (status === 'active' || status === 'pending') {
     result = result.filter((t) => !t.completed);
   } else if (status === 'completed') {
     result = result.filter((t) => t.completed);
@@ -212,7 +213,7 @@ app.post('/api/tasks', (req, res) => {
     course: course && typeof course === 'string' && course.trim() ? course.trim() : 'General',
     category: category || 'Assignment',
     priority: priority || 'medium',
-    dueDate: dueDate || null,
+    dueDate: dueDate && typeof dueDate === 'string' && dueDate.trim() ? dueDate.trim() : (dueDate || null),
     description: description && typeof description === 'string' ? description.trim() : '',
     completed: false,
     createdAt: now,
@@ -264,7 +265,9 @@ const handleUpdateTask = (req, res) => {
   if (course !== undefined && typeof course === 'string') task.course = course.trim();
   if (category !== undefined) task.category = category;
   if (priority !== undefined) task.priority = priority;
-  if (dueDate !== undefined) task.dueDate = dueDate;
+  if (dueDate !== undefined) {
+    task.dueDate = typeof dueDate === 'string' && dueDate.trim() ? dueDate.trim() : (dueDate || null);
+  }
   if (description !== undefined && typeof description === 'string') task.description = description.trim();
   if (typeof completed === 'boolean') task.completed = completed;
 
