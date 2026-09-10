@@ -1,137 +1,79 @@
-# Campus Task Manager - Backend API
+# Campus Task Manager - Backend API (Contract.md Compliant)
 
-Simple, beginner-friendly REST API backend built for the Campus Task Manager hackathon practice project.
+Express REST API backend for the **Campus Task Manager** hackathon project. Fully compliant with [`Contract.md`](../Contract.md) and compatible with the frontend application.
 
 ---
 
-## 🛠️ Technology Used
+## 🛠️ Technology Stack
 - **Node.js**: JavaScript runtime environment.
-- **Express.js**: Minimal and flexible Node.js web application framework to build RESTful APIs quickly.
-- **CORS (`cors`)**: Middleware allowing your frontend teammates (running on Vite, React, or Live Server) to connect without cross-origin errors.
-- **In-Memory Storage**: Simple JavaScript array storing tasks in memory—no complicated database setup needed for rapid hackathon prototyping.
+- **Express.js**: Fast, unopinionated web framework for Node.js.
+- **CORS (`cors`)**: Middleware allowing cross-origin requests from the frontend client (`http://localhost:5173`).
+- **In-Memory Store**: Seeded with the 6 initial academic tasks matching `Contract.md` and `frontend/src/data/mockTasks.js`.
 
 ---
 
-## 📁 Project Structure
-```text
-Campus_Task_Manager/
-└── backend/
-    ├── .gitignore       # Ignores node_modules
-    ├── package.json     # Project dependencies and npm scripts
-    ├── README.md        # Documentation and API reference
-    └── server.js        # Main Express server and API endpoints
-```
+## 📋 Task Data Model (Contract.md)
 
----
-
-## 🚀 How to Install & Run
-
-1. Open your terminal and navigate to the `backend` folder:
-   ```bash
-   cd backend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the server:
-   - **Standard start**:
-     ```bash
-     npm start
-     ```
-   - **Development auto-reload mode** (uses Node's built-in `--watch`):
-     ```bash
-     npm run dev
-     ```
-
-4. The server runs at: `http://localhost:5000`
-
----
-
-## 📋 Task Data Model
-Each task object has the following structure:
 ```json
 {
-  "id": "1",
-  "title": "Complete CS101 Lab Assignment",
-  "subject": "Computer Science",
-  "dueDate": "2026-09-15",
-  "completed": false
+  "id": "task-1",
+  "title": "Submit Data Structures Lab 4 (Binary Search Trees)",
+  "course": "CS101",
+  "category": "Assignment",
+  "priority": "high",
+  "dueDate": "2026-09-12T23:59:00.000Z",
+  "description": "Implement recursive insertion, deletion, and in-order traversal with unit tests.",
+  "completed": false,
+  "createdAt": "2026-09-10T10:30:00.000Z",
+  "updatedAt": "2026-09-10T10:30:00.000Z"
 }
 ```
+
+* **Categories**: `"Assignment"`, `"Exam Prep"`, `"Project"`, `"Reading"`, `"Personal"`
+* **Priorities**: `"high"`, `"medium"`, `"low"`
+* **Courses**: `"CS101"`, `"MATH201"`, `"PHYS150"`, `"ENG102"`, `"Campus Life"`, `"Club / Extracurricular"`, or custom strings (defaults to `"General"`).
 
 ---
 
 ## 🌐 API Endpoints
 
-| Method | Endpoint | Description | Request Body (JSON) | Success Status |
+| Method | Endpoint | Description | Query / Body Params | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/` | API Health Check | None | 200 OK |
-| `GET` | `/api/tasks` | Get all tasks | None | 200 OK |
-| `POST` | `/api/tasks` | Add a new task | `{ "title": "...", "subject": "...", "dueDate": "YYYY-MM-DD" }` | 201 Created |
-| `PATCH` | `/api/tasks/:id/complete` | Mark task as completed | None | 200 OK |
-| `DELETE` | `/api/tasks/:id` | Delete a task | None | 200 OK |
+| `GET` | `/` | API status & sitemap | None | `200` |
+| `GET` | `/api/tasks` | List all tasks | Query params: `status` (`all`/`active`/`completed`), `course`, `priority`, `search` | `200` |
+| `GET` | `/api/tasks/:id` | Get single task | `:id` in URL | `200` / `404` |
+| `POST` | `/api/tasks` | Create task | Body: `{ title, course?, category?, priority?, dueDate?, description? }` | `201` / `400` |
+| `PATCH`| `/api/tasks/:id` | Partial update | Body: `{ completed?, title?, course?, category?, priority?, dueDate?, description? }` | `200` / `400` / `404` |
+| `PATCH`| `/api/tasks/:id/complete` | Complete shortcut | None | `200` / `404` |
+| `DELETE`| `/api/tasks/:id` | Delete task | `:id` in URL | `200` / `404` |
 
 ---
 
-## 🧪 How to Test the API
+## 🚀 How to Run
 
-### Automated Test Script (Easiest)
-While the server is running in another terminal, run:
+1. Open terminal:
+   ```bash
+   cd backend
+   ```
+2. Start server:
+   ```bash
+   npm start
+   ```
+   Or with live reload:
+   ```bash
+   npm run dev
+   ```
+3. Base URL:
+   ```text
+   http://localhost:5000
+   ```
+
+---
+
+## 🧪 Automated Testing
+
+Run the test suite at any time:
 ```bash
 npm test
 ```
-This tests all 4 endpoints (GET, POST, PATCH, DELETE) and prints the results!
-
-### 1. In Your Browser
-Open:
-- `http://localhost:5000` -> Health check & overview
-- `http://localhost:5000/api/tasks` -> View all tasks
-
-### 2. Using PowerShell (Windows)
-
-- **Get all tasks**:
-  ```powershell
-  Invoke-RestMethod -Uri "http://localhost:5000/api/tasks" -Method GET
-  ```
-
-- **Add a new task**:
-  ```powershell
-  Invoke-RestMethod -Uri "http://localhost:5000/api/tasks" -Method POST -ContentType "application/json" -Body '{"title":"Physics Lab Report","subject":"Physics","dueDate":"2026-09-20"}'
-  ```
-
-- **Mark task #1 as completed**:
-  ```powershell
-  Invoke-RestMethod -Uri "http://localhost:5000/api/tasks/1/complete" -Method PATCH
-  ```
-
-- **Delete task #1**:
-  ```powershell
-  Invoke-RestMethod -Uri "http://localhost:5000/api/tasks/1" -Method DELETE
-  ```
-
-### 3. Using cURL (Git Bash / Linux / macOS)
-
-- **Get all tasks**:
-  ```bash
-  curl http://localhost:5000/api/tasks
-  ```
-
-- **Add a new task**:
-  ```bash
-  curl -X POST http://localhost:5000/api/tasks \
-    -H "Content-Type: application/json" \
-    -d '{"title": "Physics Lab Report", "subject": "Physics", "dueDate": "2026-09-20"}'
-  ```
-
-- **Mark task completed**:
-  ```bash
-  curl -X PATCH http://localhost:5000/api/tasks/1/complete
-  ```
-
-- **Delete a task**:
-  ```bash
-  curl -X DELETE http://localhost:5000/api/tasks/1
-  ```
+Verifies all endpoints, query filtering, data validation, partial updates, and error envelopes.
